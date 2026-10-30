@@ -6,9 +6,11 @@ trained model (ModelDetector, see PASS_MARKS.md) must beat on held-out data befo
 """
 from __future__ import annotations
 
+import json
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from pathlib import Path
 
 
 @dataclass
@@ -64,11 +66,14 @@ class ModelDetector:
     """A fine-tuned classifier (see PASS_MARKS.md). Needs `pip install torch transformers` and a trained model folder."""
     name = "model"
 
-    def __init__(self, model_dir: str, threshold: float = 0.5, device: str | None = None):
+    def __init__(self, model_dir: str, threshold: float | None = None, device: str | None = None):
         try:
             from transformers import pipeline
         except ImportError as e:
             raise RuntimeError("ModelDetector needs torch and transformers: pip install torch transformers") from e
+        if threshold is None:                                # the threshold train.py chose on the tune set, else 0.5
+            cfg = Path(model_dir) / "guardian.json"
+            threshold = json.loads(cfg.read_text("utf-8"))["threshold"] if cfg.exists() else 0.5
         self.threshold = threshold
         extra = {}
         if device not in (None, "cpu", -1):

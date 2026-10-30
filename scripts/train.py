@@ -63,6 +63,13 @@ def main():
     print("tune set:", json.dumps(trainer.evaluate(), indent=1))
     trainer.save_model(a.out)
     tok.save_pretrained(a.out)
+    # threshold that keeps false alarms on the tune set's normal text at 2% or less; ModelDetector reads it
+    p = trainer.predict(tune)
+    probs = torch.softmax(torch.tensor(p.predictions, dtype=torch.float32), -1)[:, 1].numpy()
+    ben = np.sort(probs[p.label_ids == 0])[::-1]
+    thr = float(max(0.5, ben[int(0.02 * len(ben))] + 1e-6))
+    (Path(a.out) / "guardian.json").write_text(json.dumps({"threshold": round(thr, 6)}), encoding="utf-8")
+    print("threshold", thr)
     print("saved", a.out)
 
 

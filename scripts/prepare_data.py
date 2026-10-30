@@ -5,6 +5,7 @@ source goes where). Test sources never appear in training. Run with the project 
 import csv
 import json
 import random
+from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
@@ -82,6 +83,36 @@ def v3_additions():
             yield row(t, l, "neuralchemy", "mixed")
 
 
+def v4_additions(cap_chat=15000, cap_orbench=15000, cap_mosscap=6000):
+    """v4: more varied normal text (chat prompts in many languages, harmless requests that sound risky) and attacks from
+    Lakera's password games, including attacks hidden in text to summarise."""
+    oa = pd.concat([pd.read_parquet(RAW / f) for f in ("oasst2_train.parquet", "oasst2_val.parquet")])
+    oa = oa[(oa.role == "prompter") & ~oa.deleted & (oa.review_result == True)]  # noqa: E712
+    out = [row(t, 0, "oasst2", "chat") for t in oa.text.sample(frac=1, random_state=7)[:cap_chat]]
+    ob = pd.read_csv(RAW / "orbench_80k.csv").sample(frac=1, random_state=7)[:cap_orbench]
+    out += [row(t, 0, "or-bench", "harmless-sounds-risky") for t in ob.prompt]
+    xs = pd.read_parquet(RAW / "xstest_prompts.parquet")
+    out += [row(t, 0, "xstest", "harmless-sounds-risky") for t, ty in zip(xs.prompt, xs.type) if not str(ty).startswith("contrast")]
+    ms = pd.concat([pd.read_parquet(RAW / f"mosscap_{s}.parquet") for s in ("train", "val", "test")])
+    out += [row(t, 1, "mosscap", "password-game") for t in ms.prompt.drop_duplicates().sample(frac=1, random_state=7)[:cap_mosscap]]
+    for s in ("train", "validation", "test"):
+        out += [row(t, 1, "gandalf-summarization", "hidden-in-document") for t in pd.read_parquet(RAW / f"gsum_{s}.parquet").text]
+    return [r for r in out if r]
+
+
+def split_tune(rows, frac=0.1):
+    """Holds out a share of each source for the tune set (threshold and epoch choice), the rest goes to training."""
+    by_src = defaultdict(list)
+    for r in rows:
+        by_src[r["source"]].append(r)
+    tune, train = [], []
+    for rs in by_src.values():
+        rng.shuffle(rs)
+        k = int(frac * len(rs))
+        tune += rs[:k]; train += rs[k:]
+    return tune, train
+
+
 def write(name, rows):
     rows = [r for r in rows if r]
     seen, uniq = set(), []
@@ -101,6 +132,9 @@ if __name__ == "__main__":
     test = write("test", test_rows())
     test_texts = {r["text"] for r in test}
     fresh = write("fresh_test", (r for r in fresh_rows() if r and r["text"] not in test_texts))
-    tune = write("tune", (r for r in jailbreak("test") if r and r["text"] not in test_texts))
-    held = test_texts | {r["text"] for r in fresh} | {r["text"] for r in tune}
-    write("train", (r for r in [*spml(), *jailbreak("train"), *llmail_emails(), *dolly(), *v3_additions()] if r and r["text"] not in held))
+    fresh_texts = {r["text"] for r in fresh}
+    v4_tune, v4_train = split_tune([r for r in v4_additions() if r["text"] not in test_texts | fresh_texts])
+    tune = write("tune", (r for r in [*jailbreak("test"), *v4_tune] if r and r["text"] not in test_texts | fresh_texts))
+    held = test_texts | fresh_texts | {r["text"] for r in tune}
+    write("train", (r for r in [*spml(), *jailbreak("train"), *llmail_emails(), *dolly(), *v3_additions(), *v4_train]
+                    if r and r["text"] not in held))
