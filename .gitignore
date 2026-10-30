@@ -9,3 +9,5 @@ models/
 runs/
 .env
 STOP
+data/raw/
+data/*.jsonl
