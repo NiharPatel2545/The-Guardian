@@ -62,7 +62,7 @@ class HeuristicDetector:
         return Detection(s, s >= self.threshold, reasons)
 
 
-DEFAULT_MODEL = "NiharPatel2545/guardian-v4"
+DEFAULT_MODEL = "niharpatel2545/guardian-v4"
 
 
 def _threshold(model: str) -> float:

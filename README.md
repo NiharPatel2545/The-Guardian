@@ -23,7 +23,7 @@ agent wants a tool ──► authorize() ──► policy rules + taint + kill s
 1. **Policy (plain code, no model):** which tools exist, which folders and websites they may touch, forbidden command
    patterns, which tools need human approval, actions per minute, a daily spending cap. Unknown tools are blocked.
 2. **Detector:** scores untrusted text for injection. `ModelDetector` is guardian-v4, a fine-tuned multilingual classifier
-   ([model card](https://huggingface.co/NiharPatel2545/guardian-v4)); `HeuristicDetector` (readable rules, no download) is the
+   ([model card](https://huggingface.co/niharpatel2545/guardian-v4)); `HeuristicDetector` (readable rules, no download) is the
    fallback. Every version is held to marks written before it was trained: [PASS_MARKS.md](PASS_MARKS.md).
 3. **Taint:** after a suspected injection is read, any tool that can move data out needs approval, even if the policy
    would normally allow it. That stops "this web page told the agent to send your files somewhere".

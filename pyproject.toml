@@ -16,7 +16,7 @@ model = ["torch", "transformers>=4.48", "huggingface_hub"]
 
 [project.urls]
 Homepage = "https://github.com/NiharPatel2545/The-Guardian"
-Model = "https://huggingface.co/NiharPatel2545/guardian-v4"
+Model = "https://huggingface.co/niharpatel2545/guardian-v4"
 
 [build-system]
 requires = ["setuptools>=77"]
