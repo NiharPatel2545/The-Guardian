@@ -105,3 +105,25 @@ injection, and a full audit log.
   harmless requests), so the fresh set is now partly seen. v5 needs another never-used test source.
 - Ship v4 as the default only if, on the fresh set, (1) its catch rate at 2% false alarms is at least 5 points above v3's
   45.1%, and (2) its false alarms at the chosen threshold are no higher than v2's 2.5%. Reported per source either way.
+
+**v4 result (30 Oct 2026, scored once).** The tune-set threshold came out at 0.5 (2% false alarms on the tune set was already
+below 0.5). Catch rate at 2% false alarms / false alarms at the threshold:
+
+| | Fresh test (7,601 rows) | Old test (1,822 rows) |
+|---|---|---|
+| v2 | 36.0% / 2.5% | 61.6% / 3.6% |
+| v3 | 45.1% / 10.8% | 97.0% / 1.1% |
+| **v4** | **76.5% / 2.1%** | 89.9% / 0.9% |
+| ProtectAI deberta-v3 prompt-injection v2 | 83.4% / 0.1% | 91.4% / 0.7% |
+
+- Ship mark (1) +5 points over v3 at 2% false alarms: **passed**, +31.4. Mark (2) false alarms no higher than v2's 2.5%:
+  **passed**, 2.1%. v4 replaces v2 as the default.
+- First-model marks: mark 2 (beat the heuristic by 15+): passed. Mark 3 (no more than 3% false alarms on hard normal text):
+  passed on both sets (deepset 1.3%, everyday chatbot prompts 2.1%). Mark 4 (under 20 ms on the GPU): passed, 14.7 ms. Mark 1
+  (Prompt Guard 2) still not scored.
+- Per source on the fresh set: S-Labs 84.9% caught / 1.4% false alarms, safeguard 87.8% / 2.4%, in-the-wild jailbreaks 92.0%,
+  JailbreakBench harmless requests 18.5% false alarms (5 of 27).
+- **Worse than v3 on agent attacks**: InjecAgent 21.5% caught, harelix mixed techniques 21.9%. Attacks hidden in tool output
+  are the weak spot. Old-test deepset dropped to 35% (part German).
+- Still 7 points behind ProtectAI on the fresh set, with more false alarms (2.1% vs 0.1%). The fresh set was partly seen when
+  choosing v4's data (see the v4 plan), so treat 76.5% as an upper bound until a never-used test source is scored.
