@@ -61,6 +61,27 @@ def test_rows():
         yield row(t, 0, "llmail-fp-emails", "email-normal")
 
 
+SHIELD_KEEP = ("alespalla/", "safeguard/", "harelix/", "trustailab/", "injecagent/", "jailbreakbench/")
+
+
+def fresh_rows():
+    """v3's fresh test: ShieldLM rows from sources we never train on, plus the S-Labs test split."""
+    d = pd.read_parquet(RAW / "shieldlm_test.parquet")
+    for t, l, src, cat in d[["text", "label_binary", "source", "label_category"]].itertuples(index=False):
+        if str(src).startswith(SHIELD_KEEP):
+            yield row(t, l, "shieldlm:" + str(src).split("/")[0], str(cat))
+    for t, l in pd.read_csv(RAW / "slabs_test.csv")[["text", "label"]].itertuples(index=False):
+        yield row(t, l, "s-labs", "mixed")
+
+
+def v3_additions():
+    for t in pd.read_csv(RAW / "yanis.csv")["prompt_injections"]:
+        yield row(t, 1, "yanismiraoui", "multilingual")
+    for split in ("train", "validation", "test"):
+        for t, l in pd.read_parquet(RAW / f"neural_core_{split}.parquet")[["text", "label"]].itertuples(index=False):
+            yield row(t, l, "neuralchemy", "mixed")
+
+
 def write(name, rows):
     rows = [r for r in rows if r]
     seen, uniq = set(), []
@@ -79,6 +100,7 @@ def write(name, rows):
 if __name__ == "__main__":
     test = write("test", test_rows())
     test_texts = {r["text"] for r in test}
+    fresh = write("fresh_test", (r for r in fresh_rows() if r and r["text"] not in test_texts))
     tune = write("tune", (r for r in jailbreak("test") if r and r["text"] not in test_texts))
-    held = test_texts | {r["text"] for r in tune}
-    write("train", (r for r in [*spml(), *jailbreak("train"), *llmail_emails(), *dolly()] if r and r["text"] not in held))
+    held = test_texts | {r["text"] for r in fresh} | {r["text"] for r in tune}
+    write("train", (r for r in [*spml(), *jailbreak("train"), *llmail_emails(), *dolly(), *v3_additions()] if r and r["text"] not in held))

@@ -55,8 +55,39 @@ deepset's normal texts). At 2% false alarms it catches 61.6%, against 31.3% for 
 
 The test set has now been used for two candidates. Before v3, add a fresh held-out source so later choices are not tuned to it.
 
+**v3 plan (written 30 Oct 2026, before any v3 data was built or model trained):**
+- Base model: mmBERT-base (multilingual ModernBERT, MIT) instead of the English-only ModernBERT-base.
+- Training additions: yanismiraoui prompt_injections (Apache-2.0, 7 languages) and neuralchemy Prompt-injection-dataset
+  (Apache-2.0). Everything else as v2.
+- New **fresh test set**, never used before: ShieldLM prompt-injection test split (MIT, 8 languages) and S-Labs
+  prompt-injection test split (MIT). Any text that also appears in training is removed from training.
+  Amended before building: ShieldLM is compiled from other datasets, three of which are in our training data and one in
+  the old test, so only its rows from other sources are kept (alespalla chatbot prompts, safeguard, harelix mixed
+  techniques, in-the-wild jailbreaks, InjecAgent, JailbreakBench). S-Labs does not list its sources, so exact duplicates
+  of training text are removed; near-duplicates may remain.
+- v3 is judged on the fresh test set (the honest number) and also reported on the old test set for comparison with v2.
+- Ship v3 over v2 only if, on the fresh set, its catch rate at 2% false alarms is at least 5 points higher than v2's on the
+  same fresh set, and its false alarms at the default threshold are no higher than v2's.
+
 ## Marks for the rules half (policy and gateway)
 
 Met by `tests/test_guardian.py` (6 tests): unknown tools blocked, paths cannot escape allowed folders, only listed websites,
 forbidden command patterns blocked, approval for "ask" tools, rate and spending caps, kill switch, taint after a suspected
 injection, and a full audit log.
+
+**v3 result and comparison (30 Oct 2026, scored once).** Catch rate at 2% false alarms / false alarms at the default threshold:
+
+| | Fresh test (7,601 rows) | Old test (1,822 rows) |
+|---|---|---|
+| heuristic-v0 | 5.6% / 0.0% | 31.3% / 0.0% |
+| v2 | 36.0% / 2.5% | 61.6% / 3.6% |
+| v3 | 45.1% / 10.8% | 97.0% / 1.1% |
+| ProtectAI deberta-v3 prompt-injection v2 | 83.4% / 0.1% | 91.4% / 0.7% |
+
+- v3 vs v2 on the fresh set: +9.1 points at 2% false alarms (mark: +5, met) but false alarms at the default threshold rose
+  from 2.5% to 10.8% (mark: no higher, **failed**). v3 does not replace v2 as the default; its threshold would need raising.
+- The industry baseline (ProtectAI) is far ahead on the fresh set: 83% caught at almost no false alarms. Its training data
+  is not fully published, so it may have seen some of these sources; the old test likely overlaps its training data, so the
+  fresh set is the fairer comparison. Honest position: we are well behind on unseen data.
+- Next: more and more varied normal text (v3's false alarms are on everyday chatbot prompts and JailbreakBench's harmless
+  requests), and agent-style indirect attacks (InjecAgent 46%, harelix 51%).

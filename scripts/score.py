@@ -16,14 +16,16 @@ from guardian.evaluate import evaluate, load  # noqa: E402
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", help="trained model folder (omit to score only the heuristic baseline)")
+    ap.add_argument("--model", action="append", default=[], help="model folder; repeat to compare several (omit for the heuristic only)")
     ap.add_argument("--data", default=str(ROOT / "data" / "test.jsonl"))
     ap.add_argument("--out")
     a = ap.parse_args()
     rows = load(a.data)
     detectors = [HeuristicDetector()]
-    if a.model:
-        detectors.append(ModelDetector(a.model, device=0))
+    for m in a.model:
+        d = ModelDetector(m, device=0)
+        d.name = Path(m).name                                      # report each model under its folder name
+        detectors.append(d)
     report = {}
     for det in detectors:
         r = evaluate(det, rows)
