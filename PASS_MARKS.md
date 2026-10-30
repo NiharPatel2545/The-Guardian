@@ -91,3 +91,17 @@ injection, and a full audit log.
   fresh set is the fairer comparison. Honest position: we are well behind on unseen data.
 - Next: more and more varied normal text (v3's false alarms are on everyday chatbot prompts and JailbreakBench's harmless
   requests), and agent-style indirect attacks (InjecAgent 46%, harelix 51%).
+
+**v4 plan (written 30 Oct 2026, before any v4 data was downloaded or model trained):**
+- Base model: mmBERT-base, same settings as v3.
+- Training additions, normal text: OpenAssistant oasst2 user prompts, all languages (Apache-2.0), up to 15,000; OR-Bench 80k,
+  harmless requests that sound risky (CC BY 4.0), up to 15,000; XSTest safe prompts (CC BY 4.0).
+- Training additions, attacks: Lakera Mosscap prompt-injection game (MIT), up to 10,000; Lakera Gandalf summarization,
+  attacks hidden inside text to summarise (MIT). Gandalf is the same game family as the old test, so the old test gets
+  less fair for v4; the fresh set is the one that decides.
+- New tune set: 10% of each new source, held out of training, plus the old tune set. The threshold is the one that keeps
+  false alarms at 2% or less on the tune set's normal text. The fresh test is not used to choose anything.
+- Honest note: the choice of these sources was informed by v3's mistakes on the fresh set (everyday chatbot prompts,
+  harmless requests), so the fresh set is now partly seen. v5 needs another never-used test source.
+- Ship v4 as the default only if, on the fresh set, (1) its catch rate at 2% false alarms is at least 5 points above v3's
+  45.1%, and (2) its false alarms at the chosen threshold are no higher than v2's 2.5%. Reported per source either way.
