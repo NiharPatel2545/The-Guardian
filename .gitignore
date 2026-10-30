@@ -11,3 +11,6 @@ runs/
 STOP
 data/raw/
 data/*.jsonl
+release/guardian-*/
+dist/
+build/

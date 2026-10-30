@@ -62,24 +62,38 @@ class HeuristicDetector:
         return Detection(s, s >= self.threshold, reasons)
 
 
+DEFAULT_MODEL = "NiharPatel2545/guardian-v4"
+
+
+def _threshold(model: str) -> float:
+    """The threshold train.py chose on the tune set (guardian.json next to the weights), else 0.5."""
+    cfg = Path(model) / "guardian.json"
+    if not cfg.exists():
+        try:
+            from huggingface_hub import hf_hub_download
+            cfg = Path(hf_hub_download(model, "guardian.json"))
+        except Exception:
+            return 0.5
+    return float(json.loads(cfg.read_text("utf-8"))["threshold"])
+
+
 class ModelDetector:
-    """A fine-tuned classifier (see PASS_MARKS.md). Needs `pip install torch transformers` and a trained model folder."""
+    """A fine-tuned classifier (see PASS_MARKS.md). Needs `pip install the-guardian[model]`. `model` is a local folder or a
+    Hugging Face model id; the default downloads guardian-v4 (about 600 MB) on first use."""
     name = "model"
 
-    def __init__(self, model_dir: str, threshold: float | None = None, device: str | None = None):
+    def __init__(self, model: str = DEFAULT_MODEL, threshold: float | None = None, device: str | int | None = None):
         try:
+            import torch
             from transformers import pipeline
         except ImportError as e:
-            raise RuntimeError("ModelDetector needs torch and transformers: pip install torch transformers") from e
-        if threshold is None:                                # the threshold train.py chose on the tune set, else 0.5
-            cfg = Path(model_dir) / "guardian.json"
-            threshold = json.loads(cfg.read_text("utf-8"))["threshold"] if cfg.exists() else 0.5
-        self.threshold = threshold
-        extra = {}
-        if device not in (None, "cpu", -1):
-            import torch
-            extra["dtype"] = torch.bfloat16                 # half precision on the GPU: about 2x faster, same answers to 2 decimals
-        self._clf = pipeline("text-classification", model=model_dir, device=device, truncation=True, max_length=512, **extra)
+            raise RuntimeError("ModelDetector needs torch and transformers: pip install the-guardian[model]") from e
+        self.threshold = _threshold(model) if threshold is None else threshold
+        if device is None:
+            device = 0 if torch.cuda.is_available() else "cpu"
+        # half precision on the GPU: about 2x faster, same answers to 2 decimals; full precision on the CPU
+        dtype = torch.float32 if device in ("cpu", -1) else torch.bfloat16
+        self._clf = pipeline("text-classification", model=model, device=device, truncation=True, max_length=512, dtype=dtype)
 
     def score(self, text: str) -> Detection:
         out = self._clf(text)[0]

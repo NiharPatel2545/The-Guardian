@@ -22,17 +22,25 @@ agent wants a tool ──► authorize() ──► policy rules + taint + kill s
 
 1. **Policy (plain code, no model):** which tools exist, which folders and websites they may touch, forbidden command
    patterns, which tools need human approval, actions per minute, a daily spending cap. Unknown tools are blocked.
-2. **Detector:** scores untrusted text for injection. `HeuristicDetector` (readable rules, no download) is the baseline;
-   a small fine-tuned classifier (`ModelDetector`) is next, held to the marks in [PASS_MARKS.md](PASS_MARKS.md).
+2. **Detector:** scores untrusted text for injection. `ModelDetector` is guardian-v4, a fine-tuned multilingual classifier
+   ([model card](https://huggingface.co/NiharPatel2545/guardian-v4)); `HeuristicDetector` (readable rules, no download) is the
+   fallback. Every version is held to marks written before it was trained: [PASS_MARKS.md](PASS_MARKS.md).
 3. **Taint:** after a suspected injection is read, any tool that can move data out needs approval, even if the policy
    would normally allow it. That stops "this web page told the agent to send your files somewhere".
 4. **Kill switch:** create a file (path you choose) and every action is blocked until it is deleted.
 5. **Audit log:** every inspection and decision as one JSON line.
 
+## Install
+
+```powershell
+pip install "the-guardian[model] @ git+https://github.com/NiharPatel2545/The-Guardian"   # rules + the trained detector
+pip install "the-guardian @ git+https://github.com/NiharPatel2545/The-Guardian"          # rules + keyword detector only, no torch
+```
+
 ## Use
 
 ```python
-from guardian import Guardian
+from guardian import Guardian, ModelDetector
 
 g = Guardian({
     "tools": {
@@ -42,7 +50,8 @@ g = Guardian({
         "send_email": {"allow": False},
     },
     "limits": {"actions_per_minute": 30, "usd_per_day": 5},
-}, audit_log="guardian-audit.jsonl", kill_switch="STOP")
+}, detector=ModelDetector(),                    # downloads guardian-v4 (about 600 MB) once; leave out for the keyword rules
+   audit_log="guardian-audit.jsonl", kill_switch="STOP")
 
 page = fetch(url)
 g.inspect(page, source="web")                     # before the agent reads it
@@ -60,18 +69,44 @@ Score any detector on labelled data (`{"text": ..., "label": 0 or 1}` per line):
 .\.venv\Scripts\python.exe -m guardian.evaluate path\to\labelled.jsonl
 ```
 
-## Status
+## How good is the detector
+
+Scored once per model on 7,601 texts in 8 languages from sources never used in training (details and every pass mark in
+[PASS_MARKS.md](PASS_MARKS.md)):
+
+| Model | Attacks caught at 2% false alarms | False alarms at its own threshold |
+|---|---|---|
+| Keyword rules | 5.6% | 0.0% |
+| guardian-v2 | 36.0% | 2.5% |
+| guardian-v3 | 45.1% | 10.8% |
+| **guardian-v4** | **76.5%** | **2.1%** |
+| ProtectAI deberta-v3 prompt-injection v2 | 83.4% | 0.1% |
+
+14.7 ms per text on a laptop GPU, about 33 ms on a laptop CPU for short texts.
+
+Honest limits: still behind ProtectAI's model; weak on attacks hidden in agent tool output (InjecAgent 21.5% caught), which is
+why the rule layer (taint, approvals, allowlists) matters; the test set was partly seen when choosing v4's data, so treat 76.5% as
+an upper bound. No guard catches everything: the goal is a measured catch rate at a low, published false-alarm rate, and rules
+that limit the damage when something slips through.
 
 | Part | State |
 |---|---|
 | Policy, taint, kill switch, audit log, tool decorator | Working, 6 tests |
-| Heuristic detector | Working baseline, not yet measured on public data |
-| Test bench (catch rate, false alarms, catch rate at a fixed false-alarm rate) | Working |
-| Trained detector | Next: fine-tune a small open model on public injection datasets on a laptop GPU, compare with Prompt Guard 2 |
+| Trained detector (guardian-v4) | Released; passes its pass marks; Prompt Guard 2 comparison pending |
+| Next detector | Agent-style indirect attacks, scored on a never-used test source |
 | HTTP service and agent-framework adapters | Later |
 
-No guard catches everything. The goal is a measured catch rate at a low, published false-alarm rate, and rules that
-limit the damage when something slips through.
+## Reproduce
+
+```powershell
+.\.venv\Scripts\python.exe -I scripts\prepare_data.py          # builds train / tune / test sets from data/raw (sources in PASS_MARKS.md)
+.\.venv\Scripts\python.exe -I scripts\train.py --base jhu-clsp/mmBERT-base --epochs 3 --out models/guardian-v4
+.\.venv\Scripts\python.exe -I scripts\score.py --model models/guardian-v4 --data data/fresh_test.jsonl
+```
+
+## Licence
+
+Code: MIT. Model weights: CC BY-SA 4.0 (one training set, Dolly-15k, is CC BY-SA); see the model card.
 
 ## Develop
 
