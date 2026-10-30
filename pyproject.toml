@@ -1,0 +1,16 @@
+[project]
+name = "the-guardian"
+version = "0.0.1"
+description = "A guard for AI agents: policy rules plus a prompt-injection detector, answering allow / block / ask."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+model = ["torch", "transformers"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["guardian"]
