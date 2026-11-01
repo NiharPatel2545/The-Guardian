@@ -5,7 +5,7 @@
   catch rate at a fixed false-alarm rate (default 2%): the fair way to compare two detectors
 
 Data: JSON lines {"text": "...", "label": 1 for attack / 0 for normal, "category": "...", "source": "..."}.
-    python -m guardian.evaluate path/to/labelled.jsonl
+    python -m blue_guardian.evaluate path/to/labelled.jsonl
 """
 from __future__ import annotations
 
@@ -51,9 +51,9 @@ def evaluate(detector, examples: list[dict], target_fpr: float = 0.02) -> dict:
 
 
 def main() -> None:
-    from guardian.detect import HeuristicDetector
+    from blue_guardian.detect import HeuristicDetector
     if len(sys.argv) < 2:
-        sys.exit("usage: python -m guardian.evaluate labelled.jsonl  (lines of {\"text\": ..., \"label\": 0 or 1})")
+        sys.exit("usage: python -m blue_guardian.evaluate labelled.jsonl  (lines of {\"text\": ..., \"label\": 0 or 1})")
     path = sys.argv[1]
     print(json.dumps(evaluate(HeuristicDetector(), load(path)), indent=2))
 

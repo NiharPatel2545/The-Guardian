@@ -6,10 +6,10 @@ import json
 
 import pytest
 
-from guardian.detect import Detection
-from guardian.evaluate import evaluate
-from guardian.gateway import Blocked, Guardian
-from guardian.policy import Policy
+from blue_guardian.detect import Detection
+from blue_guardian.evaluate import evaluate
+from blue_guardian.gateway import Blocked, Guardian
+from blue_guardian.policy import Policy
 
 POLICY = {
     "tools": {

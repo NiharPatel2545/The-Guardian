@@ -1,4 +1,4 @@
-"""The Guardian: one object an agent framework calls at two moments.
+"""Blue Guardian: one object an agent framework calls at two moments.
 
   g.inspect(text, source)        before the agent reads untrusted text (a web page, an email, a file, a tool's output)
   g.authorize(tool, args, cost)  before the agent runs a tool
@@ -17,8 +17,8 @@ import time
 from functools import wraps
 from pathlib import Path
 
-from guardian.detect import Detection, HeuristicDetector
-from guardian.policy import ALLOW, ASK, BLOCK, Decision, Policy
+from blue_guardian.detect import Detection, HeuristicDetector
+from blue_guardian.policy import ALLOW, ASK, BLOCK, Decision, Policy
 
 UNTRUSTED = {"web", "email", "file", "tool_output", "document", "unknown"}
 

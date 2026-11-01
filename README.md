@@ -1,13 +1,13 @@
-<p align="center"><img src="assets/logo.svg" width="140" alt="The Guardian"></p>
+<p align="center"><img src="assets/logo.svg" width="140" alt="Blue Guardian"></p>
 
-<h1 align="center">The Guardian</h1>
+<h1 align="center">Blue Guardian</h1>
 
 <p align="center">A guard for AI agents: rules decide what an agent may do, and a detector reads untrusted text before the agent does.</p>
 
 ---
 
 AI agents read web pages, emails and files, and they run tools. Any text they read can carry instructions written by
-someone else (prompt injection), and a fooled agent can leak files, send messages or run commands. The Guardian sits
+someone else (prompt injection), and a fooled agent can leak files, send messages or run commands. Blue Guardian sits
 between the agent and the world and answers one question each time: **allow, block, or ask a human?**
 
 It is built so it cannot go rogue itself: it never acts. It cannot run a command, send anything or change its own rules.
@@ -22,8 +22,8 @@ agent wants a tool ──► authorize() ──► policy rules + taint + kill s
 
 1. **Policy (plain code, no model):** which tools exist, which folders and websites they may touch, forbidden command
    patterns, which tools need human approval, actions per minute, a daily spending cap. Unknown tools are blocked.
-2. **Detector:** scores untrusted text for injection. `ModelDetector` is guardian-v4, a fine-tuned multilingual classifier
-   ([model card](https://huggingface.co/niharpatel2545/guardian-v4)); `HeuristicDetector` (readable rules, no download) is the
+2. **Detector:** scores untrusted text for injection. `ModelDetector` is blue-guardian-v4, a fine-tuned multilingual classifier
+   ([model card](https://huggingface.co/niharpatel2545/blue-guardian-v4)); `HeuristicDetector` (readable rules, no download) is the
    fallback. Every version is held to marks written before it was trained: [PASS_MARKS.md](PASS_MARKS.md).
 3. **Taint:** after a suspected injection is read, any tool that can move data out needs approval, even if the policy
    would normally allow it. That stops "this web page told the agent to send your files somewhere".
@@ -33,14 +33,14 @@ agent wants a tool ──► authorize() ──► policy rules + taint + kill s
 ## Install
 
 ```powershell
-pip install "the-guardian[model] @ git+https://github.com/NiharPatel2545/The-Guardian"   # rules + the trained detector
-pip install "the-guardian @ git+https://github.com/NiharPatel2545/The-Guardian"          # rules + keyword detector only, no torch
+pip install "blue-guardian[model] @ git+https://github.com/NiharPatel2545/Blue-Guardian"   # rules + the trained detector
+pip install "blue-guardian @ git+https://github.com/NiharPatel2545/Blue-Guardian"          # rules + keyword detector only, no torch
 ```
 
 ## Use
 
 ```python
-from guardian import Guardian, ModelDetector
+from blue_guardian import Guardian, ModelDetector
 
 g = Guardian({
     "tools": {
@@ -50,7 +50,7 @@ g = Guardian({
         "send_email": {"allow": False},
     },
     "limits": {"actions_per_minute": 30, "usd_per_day": 5},
-}, detector=ModelDetector(),                    # downloads guardian-v4 (about 600 MB) once; leave out for the keyword rules
+}, detector=ModelDetector(),                    # downloads blue-guardian-v4 (about 600 MB) once; leave out for the keyword rules
    audit_log="guardian-audit.jsonl", kill_switch="STOP")
 
 page = fetch(url)
@@ -66,7 +66,7 @@ def read_file(path): ...
 Score any detector on labelled data (`{"text": ..., "label": 0 or 1}` per line):
 
 ```powershell
-.\.venv\Scripts\python.exe -m guardian.evaluate path\to\labelled.jsonl
+.\.venv\Scripts\python.exe -m blue_guardian.evaluate path\to\labelled.jsonl
 ```
 
 ## How good is the detector
@@ -77,9 +77,9 @@ Scored once per model on 7,601 texts in 8 languages from sources never used in t
 | Model | Attacks caught at 2% false alarms | False alarms at its own threshold |
 |---|---|---|
 | Keyword rules | 5.6% | 0.0% |
-| guardian-v2 | 36.0% | 2.5% |
-| guardian-v3 | 45.1% | 10.8% |
-| **guardian-v4** | **76.5%** | **2.1%** |
+| blue-guardian-v2 | 36.0% | 2.5% |
+| blue-guardian-v3 | 45.1% | 10.8% |
+| **blue-guardian-v4** | **76.5%** | **2.1%** |
 | ProtectAI deberta-v3 prompt-injection v2 | 83.4% | 0.1% |
 
 14.7 ms per text on a laptop GPU, about 33 ms on a laptop CPU for short texts.
@@ -92,7 +92,7 @@ that limit the damage when something slips through.
 | Part | State |
 |---|---|
 | Policy, taint, kill switch, audit log, tool decorator | Working, 6 tests |
-| Trained detector (guardian-v4) | Released; passes its pass marks; Prompt Guard 2 comparison pending |
+| Trained detector (blue-guardian-v4) | Released; passes its pass marks; Prompt Guard 2 comparison pending |
 | Next detector | Agent-style indirect attacks, scored on a never-used test source |
 | HTTP service and agent-framework adapters | Later |
 

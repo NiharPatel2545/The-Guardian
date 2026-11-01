@@ -1,4 +1,4 @@
-"""The detector half of the Guardian: reads untrusted text (web pages, emails, documents, tool output) before an agent does,
+"""The detector half of Blue Guardian: reads untrusted text (web pages, emails, documents, tool output) before an agent does,
 and scores how likely it is to be a prompt injection.
 
 HeuristicDetector is the starting point: readable rules, no download, microseconds per message. It is the baseline the
@@ -62,7 +62,7 @@ class HeuristicDetector:
         return Detection(s, s >= self.threshold, reasons)
 
 
-DEFAULT_MODEL = "niharpatel2545/guardian-v4"
+DEFAULT_MODEL = "niharpatel2545/blue-guardian-v4"
 
 
 def _threshold(model: str) -> float:
@@ -78,8 +78,8 @@ def _threshold(model: str) -> float:
 
 
 class ModelDetector:
-    """A fine-tuned classifier (see PASS_MARKS.md). Needs `pip install the-guardian[model]`. `model` is a local folder or a
-    Hugging Face model id; the default downloads guardian-v4 (about 600 MB) on first use."""
+    """A fine-tuned classifier (see PASS_MARKS.md). Needs `pip install blue-guardian[model]`. `model` is a local folder or a
+    Hugging Face model id; the default downloads blue-guardian-v4 (about 600 MB) on first use."""
     name = "model"
 
     def __init__(self, model: str = DEFAULT_MODEL, threshold: float | None = None, device: str | int | None = None):
@@ -87,7 +87,7 @@ class ModelDetector:
             import torch
             from transformers import pipeline
         except ImportError as e:
-            raise RuntimeError("ModelDetector needs torch and transformers: pip install the-guardian[model]") from e
+            raise RuntimeError("ModelDetector needs torch and transformers: pip install blue-guardian[model]") from e
         self.threshold = _threshold(model) if threshold is None else threshold
         if device is None:
             device = 0 if torch.cuda.is_available() else "cpu"

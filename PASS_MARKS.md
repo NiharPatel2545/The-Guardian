@@ -71,7 +71,7 @@ The test set has now been used for two candidates. Before v3, add a fresh held-o
 
 ## Marks for the rules half (policy and gateway)
 
-Met by `tests/test_guardian.py` (6 tests): unknown tools blocked, paths cannot escape allowed folders, only listed websites,
+Met by `tests/test_blue_guardian.py` (6 tests): unknown tools blocked, paths cannot escape allowed folders, only listed websites,
 forbidden command patterns blocked, approval for "ask" tools, rate and spending caps, kill switch, taint after a suspected
 injection, and a full audit log.
 

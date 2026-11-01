@@ -1,5 +1,5 @@
 [project]
-name = "the-guardian"
+name = "blue-guardian"
 version = "0.4.0"
 description = "A guard for AI agents: policy rules plus a prompt-injection detector, answering allow / block / ask."
 readme = "README.md"
@@ -15,12 +15,12 @@ classifiers = ["Programming Language :: Python :: 3", "Topic :: Security", "Inte
 model = ["torch", "transformers>=4.48", "huggingface_hub"]
 
 [project.urls]
-Homepage = "https://github.com/NiharPatel2545/The-Guardian"
-Model = "https://huggingface.co/niharpatel2545/guardian-v4"
+Homepage = "https://github.com/NiharPatel2545/Blue-Guardian"
+Model = "https://huggingface.co/niharpatel2545/blue-guardian-v4"
 
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["guardian"]
+packages = ["blue_guardian"]

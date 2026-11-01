@@ -34,7 +34,7 @@ def main():
     ap.add_argument("--max-len", type=int, default=256)
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--lr", type=float, default=3e-5)
-    ap.add_argument("--out", default=str(ROOT / "models" / "guardian-v1"))
+    ap.add_argument("--out", default=str(ROOT / "models" / "blue-guardian-v1"))
     a = ap.parse_args()
 
     tok = AutoTokenizer.from_pretrained(a.base)

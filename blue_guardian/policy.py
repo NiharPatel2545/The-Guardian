@@ -1,4 +1,4 @@
-"""The rules half of the Guardian: plain code that decides allow / block / ask for every action an AI agent wants to take.
+"""The rules half of Blue Guardian: plain code that decides allow / block / ask for every action an AI agent wants to take.
 No model is involved here, so nothing an attacker writes can talk it out of a rule.
 
 A policy is a dict (or JSON file):

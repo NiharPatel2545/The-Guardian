@@ -10,8 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from guardian.detect import HeuristicDetector, ModelDetector  # noqa: E402
-from guardian.evaluate import evaluate, load  # noqa: E402
+from blue_guardian.detect import HeuristicDetector, ModelDetector  # noqa: E402
+from blue_guardian.evaluate import evaluate, load  # noqa: E402
 
 
 def main():
