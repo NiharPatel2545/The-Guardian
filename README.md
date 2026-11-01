@@ -51,7 +51,7 @@ g = Guardian({
     },
     "limits": {"actions_per_minute": 30, "usd_per_day": 5},
 }, detector=ModelDetector(),                    # downloads blue-guardian-v4 (about 600 MB) once; leave out for the keyword rules
-   audit_log="guardian-audit.jsonl", kill_switch="STOP")
+   audit_log="blue-guardian-audit.jsonl", kill_switch="STOP")
 
 page = fetch(url)
 g.inspect(page, source="web")                     # before the agent reads it
@@ -100,8 +100,8 @@ that limit the damage when something slips through.
 
 ```powershell
 .\.venv\Scripts\python.exe -I scripts\prepare_data.py          # builds train / tune / test sets from data/raw (sources in PASS_MARKS.md)
-.\.venv\Scripts\python.exe -I scripts\train.py --base jhu-clsp/mmBERT-base --epochs 3 --out models/guardian-v4
-.\.venv\Scripts\python.exe -I scripts\score.py --model models/guardian-v4 --data data/fresh_test.jsonl
+.\.venv\Scripts\python.exe -I scripts\train.py --base jhu-clsp/mmBERT-base --epochs 3 --out models/blue-guardian-v4
+.\.venv\Scripts\python.exe -I scripts\score.py --model models/blue-guardian-v4 --data data/fresh_test.jsonl
 ```
 
 ## Licence

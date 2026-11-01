@@ -1,6 +1,6 @@
 """Fine-tunes a small open model (ModernBERT-base) to tell injections from normal text, on the train set only.
 The tune set picks the best epoch; the test set is not touched here (scripts/score.py does that once).
-    .venv\\Scripts\\python.exe -I scripts\\train.py [--epochs 3] [--max-len 256] [--out models/guardian-v1]
+    .venv\\Scripts\\python.exe -I scripts\\train.py [--epochs 3] [--max-len 256] [--out models/blue-guardian-v1]
 """
 import argparse
 import json

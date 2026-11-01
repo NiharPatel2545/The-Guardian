@@ -12,5 +12,6 @@ STOP
 data/raw/
 data/*.jsonl
 release/guardian-*/
+release/blue-guardian-*/
 dist/
 build/

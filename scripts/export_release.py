@@ -1,6 +1,6 @@
 """Writes a release copy of a trained model: weights in bfloat16 (half the size, same answers to 2 decimals), tokenizer,
 config, the tuned threshold and the model card. Then checks the copy scores the tune set like the original.
-    .venv\Scripts\python.exe -I scripts\export_release.py models/guardian-v4 release/guardian-v4
+    .venv\Scripts\python.exe -I scripts\export_release.py models/blue-guardian-v4 release/blue-guardian-v4
 """
 import json
 import shutil

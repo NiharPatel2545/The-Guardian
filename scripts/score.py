@@ -1,6 +1,6 @@
 """Scores detectors on the held-out test set (once per candidate) and prints the numbers the pass marks need,
 overall and per source.
-    .venv\\Scripts\\python.exe -I scripts\\score.py [--model models/guardian-v1] [--out runs/score_v1.json]
+    .venv\\Scripts\\python.exe -I scripts\\score.py [--model models/blue-guardian-v1] [--out runs/score_v1.json]
 """
 import argparse
 import json
